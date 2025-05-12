@@ -123,3 +123,7 @@ python main.py
 
 ## ✍️ Catatan
 Pastikan folder `plots/` sudah dibuat sebelum menjalankan script, atau tambahkan perintah `os.makedirs('plots', exist_ok=True)` di awal script untuk otomatis membuatnya.
+
+## 📘 Dokumentasi Tambahan
+
+👉 [Lihat penjelasan teknis lengkap di EXPLAINATION.md](docs/EXPLAINATION.md)
