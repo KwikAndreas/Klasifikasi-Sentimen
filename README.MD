@@ -142,4 +142,4 @@ Pastikan folder `plots/` sudah dibuat sebelum menjalankan script, atau tambahkan
 
 ## 📘 Dokumentasi Tambahan
 
-👉 [Lihat penjelasan teknis lengkap di EXPLAINATION.MD](docs/EXPLAINATION.MD)
+👉 [Lihat penjelasan teknis lengkap di EXPLAINATION.MD](EXPLAINATION.MD)
