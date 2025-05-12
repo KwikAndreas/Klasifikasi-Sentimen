@@ -6,6 +6,11 @@ Proyek ini membandingkan performa tiga algoritma machine learning dalam mengklas
 - Support Vector Machine (SVM)
 - Neural Network (Keras)
 
+
+## 📘 Dokumentasi Tambahan
+
+👉 [Lihat penjelasan teknis lengkap di EXPLAINATION.MD](docs/EXPLAINATION.MD)
+
 ## 📦 Prasyarat
 
 - Python 3.8 atau lebih baru
@@ -139,7 +144,3 @@ python main.py
 ## ✍️ Catatan
 
 Pastikan folder `plots/` sudah dibuat sebelum menjalankan script, atau tambahkan perintah `os.makedirs('plots', exist_ok=True)` di awal script untuk otomatis membuatnya.
-
-## 📘 Dokumentasi Tambahan
-
-👉 [Lihat penjelasan teknis lengkap di EXPLAINATION.MD](docs/EXPLAINATION.MD)
