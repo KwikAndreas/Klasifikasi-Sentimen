@@ -205,3 +205,56 @@ plt.plot(plot_callback.history[...])
 
 ---
 
+
+---
+
+# 🧠 Pengertian & Cara Kerja Model
+
+## 🌲 Random Forest - Konsep & Cara Kerja
+
+**Random Forest** adalah ensemble learning method berbasis decision tree. Model ini membangun banyak decision tree dan menggabungkan hasilnya (via majority voting untuk klasifikasi) untuk meningkatkan akurasi dan mengurangi overfitting.
+
+### Cara Kerja:
+1. Setiap pohon dilatih pada subset data secara acak (bootstrap sampling).
+2. Di setiap split, hanya subset acak dari fitur yang dipertimbangkan (menciptakan variasi).
+3. Output akhir diambil dari voting mayoritas seluruh pohon.
+
+### Sifat:
+- Bersifat non-linear.
+- Mampu menangani missing data dan fitur kategorik.
+- Cenderung robust terhadap overfitting dibanding single decision tree.
+
+---
+
+## 📐 Support Vector Machine (SVM) - Konsep & Cara Kerja
+
+**SVM** mencari hyperplane terbaik untuk memisahkan data berdasarkan label. Untuk data teks (dimensi tinggi), SVM sangat efektif karena memfokuskan pada margin optimal antar kelas.
+
+### Cara Kerja:
+1. SVM memproyeksikan data ke ruang dimensi tinggi (high-dimensional space).
+2. Mencari hyperplane (garis pemisah) dengan margin terbesar antar kelas.
+3. Data di luar margin disebut support vectors.
+
+### Tipe yang Digunakan: `LinearSVC`
+- Khusus linear kernel untuk efisiensi pada data teks besar.
+- Tidak menghitung kernel transform eksplisit — cocok untuk TF-IDF.
+
+---
+
+## 🔮 Neural Network - Konsep & Cara Kerja
+
+Neural Network adalah model non-linear yang terinspirasi dari neuron biologis. Ia belajar dari data melalui propagasi bobot (weights) dan aktivasi.
+
+### Cara Kerja (Feedforward NN):
+1. Input layer menerima fitur (TF-IDF vector).
+2. Hidden layer memproses melalui aktivasi (`ReLU`) dan dropout.
+3. Output layer (3 neuron) menggunakan `softmax` untuk menghasilkan probabilitas 3 kelas.
+4. Backpropagation digunakan untuk menyesuaikan bobot berdasar loss `categorical_crossentropy`.
+
+### Arsitektur dalam Script:
+- 512 neuron → 256 neuron → 3 kelas output.
+- Dropout = 0.4 untuk regularisasi.
+- BatchNormalization membantu stabilisasi training.
+
+---
+
