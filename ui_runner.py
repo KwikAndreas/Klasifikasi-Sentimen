@@ -8,6 +8,7 @@ import time
 import os
 import sys
 from PIL import Image, ImageTk
+from bs4 import BeautifulSoup
 
 class RedirectOutput:
     def __init__(self, text_widget):
@@ -74,14 +75,29 @@ class TrainingUI:
         self.tree_scroll.pack(side="right", fill="y")
         self.tree.configure(yscrollcommand=self.tree_scroll.set)
 
+        self.input_frame = tk.LabelFrame(self.left_frame, text="Test Input", bg="#181818", fg="white", font=("Segoe UI", 10, "bold"))
+        self.input_frame.pack(fill=tk.X, expand=False, padx=10, pady=(0, 10))
+
+        self.test_input = scrolledtext.ScrolledText(self.input_frame, wrap=tk.WORD, height=5, font=("Segoe UI", 10))
+        self.test_input.pack(fill=tk.X, padx=5, pady=5)
+
+        self.predict_btn = ttk.Button(self.input_frame, text="Predict Text", command=self.predict_text)
+        self.predict_btn.pack(fill=tk.X, padx=5, pady=2)
+
+        self.random_btn = ttk.Button(self.input_frame, text="Random Sample", command=self.load_random_sample)
+        self.random_btn.pack(fill=tk.X, padx=5, pady=(2, 5))
+
+        self.pred_result = tk.Label(self.input_frame, text="", bg="#181818", fg="yellow", font=("Segoe UI", 10, "bold"))
+        self.pred_result.pack(fill=tk.X, padx=5, pady=(0, 5))
+
         self.code_notebook = ttk.Notebook(self.center_frame)
         self.code_notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         self.code_tab = tk.Frame(self.code_notebook, bg="#1e1e1e")
-        self.plot_tab = tk.Frame(self.code_notebook, bg="#1e1e1e")
+        self.terminal_tab = tk.Frame(self.code_notebook, bg="#1e1e1e")
 
         self.code_notebook.add(self.code_tab, text="Code")
-        self.code_notebook.add(self.plot_tab, text="Training Results")
+        self.code_notebook.add(self.terminal_tab, text="Terminal")
 
         self.code_canvas = tk.Canvas(self.code_tab, bg="#1e1e1e")
         self.code_canvas.pack(side=tk.LEFT, fill="both", expand=True)
@@ -89,18 +105,18 @@ class TrainingUI:
         self.code_scroll.pack(side="right", fill="y")
         self.code_canvas.configure(yscrollcommand=self.code_scroll.set)
 
-        self.code_text = tk.Text(
-            self.code_canvas, wrap="none", bg="#1e1e1e", fg="white",
-            insertbackground="white", font=("Consolas", 11)
-        )
+        self.code_text = tk.Text(self.code_canvas, wrap="none", bg="#1e1e1e", fg="white", insertbackground="white", font=("Consolas", 11))
         self.code_window = self.code_canvas.create_window((0, 0), window=self.code_text, anchor="nw")
         self.code_text.bind("<Configure>", lambda e: self.code_canvas.configure(scrollregion=self.code_canvas.bbox("all")))
         self.code_canvas.bind("<Configure>", self._resize_code_text)
         self.code_text.config(state="disabled")
 
-        self.plot_scroll_canvas = tk.Canvas(self.plot_tab, bg="#1e1e1e")
+        self.terminal = tk.Text(self.terminal_tab, height=10, bg="#121212", fg="#00FF00", insertbackground='white', font=("Consolas", 11))
+        self.terminal.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        self.plot_scroll_canvas = tk.Canvas(self.right_frame, bg="#1e1e1e")
         self.plot_scroll_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.plot_scrollbar = ttk.Scrollbar(self.plot_tab, orient="vertical", command=self.plot_scroll_canvas.yview)
+        self.plot_scrollbar = ttk.Scrollbar(self.right_frame, orient="vertical", command=self.plot_scroll_canvas.yview)
         self.plot_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.plot_scroll_canvas.configure(yscrollcommand=self.plot_scrollbar.set)
 
@@ -108,23 +124,17 @@ class TrainingUI:
         self.plot_canvas_window = self.plot_scroll_canvas.create_window((0, 0), window=self.plot_inner_frame, anchor='nw')
         self.plot_inner_frame.bind("<Configure>", lambda e: self.plot_scroll_canvas.configure(scrollregion=self.plot_scroll_canvas.bbox("all")))
 
-        self.terminal = tk.Text(
-            self.right_frame, height=10, bg="#121212", fg="#00FF00",
-            insertbackground='white', font=("Consolas", 11)
-        )
-        self.terminal.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
         self.btn_frame = tk.Frame(self.root, bg="#181818")
-        self.btn_frame.pack(side=tk.BOTTOM, pady=10)
-
-        self.start_btn = ttk.Button(self.btn_frame, text="Start Training", command=self.start_training)
-        self.start_btn.pack(side=tk.LEFT, padx=10)
-
-        self.restart_btn = ttk.Button(self.btn_frame, text="Restart", command=self.restart_app)
-        self.restart_btn.pack(side=tk.LEFT, padx=10)
+        self.btn_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
 
         self.exit_btn = ttk.Button(self.btn_frame, text="Exit", command=self.exit_app)
-        self.exit_btn.pack(side=tk.LEFT, padx=10)
+        self.exit_btn.pack(side=tk.RIGHT, padx=5)
+
+        self.restart_btn = ttk.Button(self.btn_frame, text="Restart", command=self.restart_app)
+        self.restart_btn.pack(side=tk.RIGHT, padx=5)
+
+        self.start_btn = ttk.Button(self.btn_frame, text="Start Training", command=self.start_training)
+        self.start_btn.pack(side=tk.RIGHT, padx=5)
 
         self.df_csv = None
         self.load_csv("dataset/movie.csv")
@@ -178,6 +188,47 @@ class TrainingUI:
             line_index = f"{line_number}.0"
             self.code_text.tag_add("highlight", line_index, f"{line_number}.end")
             self.code_text.tag_config("highlight", background="yellow", foreground="black")
+
+    def predict_text(self):
+        import joblib
+        from bs4 import BeautifulSoup
+        import emoji
+        import re
+        import string
+
+        text = self.test_input.get("1.0", tk.END).strip()
+        if not text:
+            self.pred_result.config(text="No input provided.")
+            return
+
+        try:
+            model = joblib.load("models/svm_model.pkl")
+            vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
+
+            def clean_text(t):
+                t = BeautifulSoup(t, "html.parser").get_text()
+                t = emoji.replace_emoji(t, replace='')
+                t = t.lower()
+                t = re.sub(r"[%s]" % re.escape(string.punctuation), " ", t)
+                t = re.sub(r"\s+", " ", t)
+                t = t.encode('ascii', 'ignore').decode('utf-8')
+                return t.strip()
+
+            cleaned = clean_text(text)
+            vector = vectorizer.transform([cleaned])
+            pred = model.predict(vector)[0]
+
+            label = "Positive ✅" if pred == 1 else "Netral ⭕"
+            self.pred_result.config(text=f"Prediction: {label}")
+
+        except Exception as e:
+            self.pred_result.config(text=f"Prediction error: {e}")
+
+    def load_random_sample(self):
+        if self.df_csv is not None:
+            sample = self.df_csv.sample(1).iloc[0]
+            self.test_input.delete("1.0", tk.END)
+            self.test_input.insert(tk.END, str(sample.text))
 
     def start_training(self):
         self.start_btn.config(state='disabled', text="Running...")

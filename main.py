@@ -7,6 +7,7 @@ import string
 import os
 from bs4 import BeautifulSoup
 import emoji
+import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -85,7 +86,7 @@ for sentiment in [0, 1]:
     label_name = 'Negative' if sentiment == 0 else 'Positive'
     words, scores = get_top_tfidf_words(sentiment)
     plt.figure(figsize=(10, 6))
-    sns.barplot(x=scores, y=words, palette='viridis')
+    sns.barplot(x=scores, y=words, palette='viridis', hue=words)
     plt.title(f"Top 20 TF-IDF Words - {label_name}")
     plt.xlabel("TF-IDF Score")
     plt.tight_layout()
@@ -105,7 +106,7 @@ for sentiment in [0, 1]:
     plt.savefig(f"plots/wordcloud_{label_name.lower()}.png")
     plt.close()
 
-# === One-hot Encoding for NN ===
+# === One-hot Encoding NN ===
 y_train_cat = to_categorical([int(l) + 1 for l in y_train])
 y_test_cat = to_categorical([int(l) + 1 for l in y_test])
 
@@ -120,7 +121,7 @@ results['Random Forest'] = accuracy_score(y_test, y_pred_rf)
 
 # === SVM ===
 print("[STARTING] SVM")
-svm_model = LinearSVC(C=0.5, max_iter=2000)
+svm_model = LinearSVC(C=0.5, max_iter=2000, random_state=42, verbose=1)
 svm_model.fit(X_train_vec, y_train)
 y_pred_svm = svm_model.predict(X_test_vec)
 results['SVM'] = accuracy_score(y_test, y_pred_svm)
@@ -169,6 +170,12 @@ predictions = {
     'SVM': y_pred_svm,
     'Neural Network': y_pred_nn
 }
+
+# === Save the Best Model and Vectorizer ===
+print("[SAVING] Saving best model (SVM) and vectorizer...")
+joblib.dump(svm_model, 'models/svm_model.pkl')
+joblib.dump(tfidf, 'models/tfidf_vectorizer.pkl')
+print("[DONE] Model and vectorizer saved.")
 
 for model_name, y_pred in predictions.items():
     print(f"\n=== {model_name} ===")
