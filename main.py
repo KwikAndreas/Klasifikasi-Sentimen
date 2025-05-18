@@ -25,8 +25,9 @@ from wordcloud import WordCloud
 import nltk
 from nltk import pos_tag
 from nltk.tokenize import word_tokenize
+import nltk
 nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
+nltk.download('averaged_perceptron_tagger_eng')
 
 # === Load Dataset ===
 print("[READ] Loading dataset...")

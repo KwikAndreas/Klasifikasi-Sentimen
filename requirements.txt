@@ -1,1 +1,2 @@
 pip install pandas numpy matplotlib seaborn scikit-learn tensorflow wordcloud joblib
+python -m nltk.downloader punkt averaged_perceptron_tagger
