@@ -22,6 +22,11 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import Callback
 
 from wordcloud import WordCloud
+import nltk
+from nltk import pos_tag
+from nltk.tokenize import word_tokenize
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
 
 # === Load Dataset ===
 print("[READ] Loading dataset...")
@@ -77,9 +82,26 @@ def get_top_tfidf_words(class_label, top_n=20):
     texts = df[df['label'] == class_label]['clean_text']
     tfidf_subset = tfidf.transform(texts)
     mean_tfidf = np.asarray(tfidf_subset.mean(axis=0)).flatten()
-    top_indices = mean_tfidf.argsort()[-top_n:][::-1]
-    top_features = [tfidf.get_feature_names_out()[i] for i in top_indices]
-    top_scores = mean_tfidf[top_indices]
+
+    # Get all feature names (tokens)
+    feature_names = tfidf.get_feature_names_out()
+    
+    # POS tagging: get POS for each unigram only (ignore bigrams)
+    unigram_features = [w for w in feature_names if ' ' not in w]
+    pos_tags = dict(pos_tag(unigram_features))
+
+    # Select adjectives only
+    adj_indices = [i for i, word in enumerate(feature_names)
+                   if word in pos_tags and pos_tags[word] in ('JJ', 'JJR', 'JJS')]
+    
+    # Filter TF-IDF values
+    adj_scores = mean_tfidf[adj_indices]
+    sorted_idx = np.argsort(adj_scores)[-top_n:][::-1]
+
+    top_adj_indices = [adj_indices[i] for i in sorted_idx]
+    top_features = [feature_names[i] for i in top_adj_indices]
+    top_scores = mean_tfidf[top_adj_indices]
+
     return top_features, top_scores
 
 for sentiment in [0, 1]:
