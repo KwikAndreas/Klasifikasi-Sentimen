@@ -15,100 +15,175 @@ import re, string, os
 from bs4 import BeautifulSoup
 import emoji
 ```
-- `pandas`, `numpy`: manipulasi data dan array.
-- `matplotlib`, `seaborn`: visualisasi data.
-- `re`, `string`: cleaning text.
-- `os`: manajemen file (digunakan untuk menyimpan plot).
-- `BeautifulSoup`: menghapus tag HTML dari teks.
-- `emoji`: menghapus emoji dari teks.
+
+* `pandas`, `numpy`: manipulasi data dan array.
+* `matplotlib`, `seaborn`: visualisasi data.
+* `re`, `string`: cleaning text.
+* `os`: manajemen file (digunakan untuk menyimpan plot).
+* `BeautifulSoup`: menghapus tag HTML dari teks.
+* `emoji`: menghapus emoji dari teks.
 
 ```python
 from sklearn... , from tensorflow... , from wordcloud import WordCloud
 ```
-- `sklearn`: untuk preprocessing, modeling, evaluasi.
-- `tensorflow.keras`: membangun dan melatih neural network.
-- `wordcloud`: visualisasi kata penting.
+
+* `sklearn`: untuk preprocessing, modeling, evaluasi.
+* `tensorflow.keras`: membangun dan melatih neural network.
+* `wordcloud`: visualisasi kata penting.
 
 ---
 
-## 2. 📥 Load Dataset
+## 2. 📅 Load Dataset
 
 ```python
 df = pd.read_csv('dataset/movie.csv')
 ```
-- Memuat dataset CSV ke dalam DataFrame.
-- Diasumsikan memiliki kolom `text` dan `label`.
+
+* Memuat dataset CSV ke dalam DataFrame.
+* Diasumsikan memiliki kolom `text` dan `label`.
 
 ---
 
-## 3. 📊 Distribusi Label
+## 3. 📊 Distribusi Label (EDA)
 
 ```python
 sns.countplot(x='label', ...)
 plt.pie(...)
 ```
-- Menampilkan distribusi label untuk mengetahui keseimbangan data.
+
+* Menampilkan distribusi label untuk mengetahui keseimbangan data.
+* Ini merupakan bagian dari **Exploratory Data Analysis (EDA)**, yaitu proses memahami struktur data sebelum membuat model.
+* Visualisasi distribusi label membantu mendeteksi apakah data **imbalanced** atau **balanced**.
 
 ---
 
-## 4. 🧼 Preprocessing Teks
+## 4. 📅 Pembersihan dan Preprocessing Teks
 
 ```python
 def clean_text(text): ...
 ```
-- Menghapus HTML, emoji, simbol, dan karakter non-ASCII.
-- Case folding dan normalisasi spasi.
-- Ini penting untuk hasil vektorisasi TF-IDF yang konsisten.
+
+* Menghapus HTML, emoji, simbol, dan karakter non-ASCII.
+* Case folding (lowercase) dan normalisasi spasi.
+* Ini penting untuk memastikan input model konsisten.
 
 ---
 
-## 5. ✂️ Train-Test Split
-
-```python
-train_test_split(..., stratify=df['label'])
-```
-- Membagi data secara seimbang berdasarkan label.
-- Test size = 30% untuk pengujian model.
-
----
-
-## 6. 🔡 TF-IDF Vectorization
+## 5. ✂️ Tokenisasi (melalui TF-IDF)
 
 ```python
 tfidf = TfidfVectorizer(...)
 ```
-- `max_features=15000`: membatasi jumlah fitur untuk efisiensi.
-- `min_df=2`: hanya term yang muncul di minimal 2 dokumen.
-- `max_df=0.85`: menghindari term yang terlalu umum.
-- `ngram_range=(1,2)`: mempertimbangkan unigram dan bigram.
+
+* Mengubah teks menjadi vektor angka berbasis bobot kata (TF-IDF).
+* Secara internal melakukan **tokenisasi**, yaitu memecah teks menjadi token (kata atau frasa).
+* Tokenisasi membantu mengubah teks mentah menjadi bentuk yang bisa diproses model.
+
+Contoh:
+
+```
+Teks: "Film ini bagus"
+Token: ['film', 'ini', 'bagus']
+```
 
 ---
 
-## 7. 📈 Top 20 Kata Berdasarkan TF-IDF
+## 6. ✅ Train-Test Split
+
+```python
+train_test_split(..., stratify=df['label'])
+```
+
+* Membagi data menjadi data latih dan data uji.
+* Stratifikasi menjaga distribusi label tetap seimbang di kedua set.
+
+---
+
+## 7. 🔄 Vektorisasi TF-IDF
+
+```python
+tfidf = TfidfVectorizer(...)
+```
+
+* `max_features=15000`: membatasi jumlah fitur.
+* `min_df=2`, `max_df=0.85`: menghilangkan kata yang terlalu jarang atau terlalu sering.
+* `ngram_range=(1,2)`: mempertimbangkan unigram dan bigram.
+
+---
+
+## 8. 📊 Top Kata Berdasarkan TF-IDF
 
 ```python
 get_top_tfidf_words(...)
 ```
-- Mengambil kata-kata yang paling bernilai untuk setiap kelas.
-- Digunakan untuk interpretabilitas model.
+
+* Mengambil kata-kata dengan skor TF-IDF tertinggi per kelas.
+* Diperkuat dengan POS tagging untuk memilih kata sifat (adjective) paling representatif.
+* Berguna untuk interpretasi hasil model.
 
 ---
 
-## 8. 🌥 WordCloud
+## 9. ☁️ WordCloud
 
 ```python
 WordCloud().generate(text)
 ```
-- Membuat visualisasi term yang paling sering muncul per kelas.
+
+* Visualisasi kata-kata yang sering muncul per label.
+* Membantu memahami topik atau tone dominan.
 
 ---
 
-## 9. 🔢 One-Hot Encoding untuk Neural Network
+## 10. 📉 One-Hot Encoding untuk Neural Network
 
 ```python
 to_categorical(...)
 ```
-- Model NN menggunakan `categorical_crossentropy`, maka label harus dalam format one-hot.
+
+* Mengubah label kategori seperti 0 dan 1 menjadi format **one-hot vector**.
+* Neural Network memerlukan format ini untuk klasifikasi multi-kelas dengan `categorical_crossentropy`.
+
+Contoh:
+
+| Label | One-Hot Vector |
+| ----- | -------------- |
+| 0     | \[1, 0, 0]     |
+| 1     | \[0, 1, 0]     |
+| 2     | \[0, 0, 1]     |
+
+---
+
+## 11. 📊 Training dan Evaluasi Model
+
+* Random Forest, SVM, dan Neural Network masing-masing dilatih dan diuji pada data yang sama.
+* Digunakan metrik: `accuracy_score`, `classification_report`, dan `confusion_matrix`.
+
+---
+
+## 12. 🔄 Visualisasi Training Neural Network
+
+```python
+plt.plot(plot_callback.history[...])
+```
+
+* Menampilkan grafik akurasi dan loss selama pelatihan.
+* Berguna untuk memantau overfitting atau underfitting.
+
+---
+
+# 🏁 Kesimpulan
+
+* SVM menghasilkan akurasi terbaik di antara ketiga model.
+* Neural Network mendekati SVM, namun membutuhkan lebih banyak waktu dan sumber daya.
+* Random Forest mudah diimplementasikan dan cukup stabil, tapi performanya kalah dalam data teks berdimensi tinggi.
+
+---
+
+# 🧠 Glosarium Istilah Penting
+
+* **EDA (Exploratory Data Analysis)**: Proses eksplorasi awal untuk memahami struktur, distribusi, dan pola dalam data.
+* **Tokenisasi**: Pemecahan teks menjadi unit-unit kecil (biasanya kata) agar bisa dianalisis atau dimodelkan.
+* **One-Hot Encoding**: Transformasi label menjadi vektor biner agar bisa digunakan pada output layer neural network.
 
 ---
 

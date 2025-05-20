@@ -37,6 +37,7 @@ print("[INFO] Dataset loaded.")
 # === Label Distribution ===
 print("Label distribution:")
 print(df['label'].value_counts())
+print(df.head(10))
 
 plt.figure(figsize=(6, 4))
 sns.countplot(x='label', data=df, hue='label', palette='pastel', legend=False)
@@ -47,7 +48,13 @@ plt.close()
 # === Pie Chart ===
 label_counts = df['label'].value_counts()
 plt.figure(figsize=(6, 6))
-plt.pie(label_counts, labels=['Negative', 'Positive'], autopct='%1.1f%%', startangle=140, colors=sns.color_palette("pastel"))
+plt.pie(
+    label_counts, 
+    labels=['Negative', 'Positive'], 
+    autopct='%1.2f%%', 
+    startangle=140, 
+    colors=sns.color_palette("pastel")
+)
 plt.title("Sentiment Distribution (Pie)")
 plt.savefig("plots/pie_label_distribution.png")
 plt.close()
@@ -70,7 +77,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     test_size=0.3, stratify=df['label'], random_state=42
 )
 
-# === TF-IDF Vectorization ===
+# === TF-IDF Vectorization (Tokenisasi) ===
 print("[STARTING] TF-IDF Vectorization.")
 # max_features=10000, min_df=3, max_df=0.9
 tfidf = TfidfVectorizer(max_features=15000, min_df=2, max_df=0.85, ngram_range=(1, 2))
