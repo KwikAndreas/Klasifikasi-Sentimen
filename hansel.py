@@ -12,8 +12,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Embedding, GlobalAveragePooling1D, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import LSTM
+from tensorflow.keras.callbacks import Callback
 
 df = pd.read_csv('dataset\movie.csv')
 
@@ -63,6 +63,18 @@ X_train, X_test, y_train, y_test = train_test_split(
     padded_sequences, one_hot_labels, test_size=0.3, random_state=42
 )
 
+class PlotMetrics(Callback):
+    def __init__(self):
+        self.history = {'acc': [], 'loss': []}
+
+    def on_epoch_end(self, epoch, logs=None):
+        acc = logs['accuracy']
+        loss = logs['loss']
+        print(f"[EPOCH {epoch+1}] Accuracy: {acc:.4f}, Loss: {loss:.4f}")
+        self.history['acc'].append(acc)
+        self.history['loss'].append(loss)
+
+plot_callback = PlotMetrics()
 
 model = Sequential([
     Embedding(input_dim=len(tokenizer.word_index) + 1, output_dim=128, input_length=100),
@@ -74,7 +86,6 @@ model = Sequential([
 
 model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 
-
 # Latih model dengan EarlyStopping
 history = model.fit(
     X_train, y_train,
@@ -82,7 +93,7 @@ history = model.fit(
     validation_data=(X_test, y_test),
     batch_size=64,
     verbose=1,
-    callbacks=[EarlyStopping(monitor='val_accuracy', patience=3, restore_best_weights=True)]
+    callbacks=[plot_callback]
 )
 
 model.save('models/model.h5')

@@ -45,7 +45,7 @@ plt.title("Label Distribution")
 plt.savefig("plots/label_distribution.png")
 plt.close()
 
-# === Pie Chart ===
+# === Pie Chart - EDA ===
 label_counts = df['label'].value_counts()
 plt.figure(figsize=(6, 6))
 plt.pie(
@@ -137,8 +137,8 @@ for sentiment in [0, 1]:
     plt.close()
 
 # === One-hot Encoding NN ===
-y_train_cat = to_categorical([int(l) + 1 for l in y_train])
-y_test_cat = to_categorical([int(l) + 1 for l in y_test])
+y_train_cat = to_categorical([int(l) for l in y_train])
+y_test_cat = to_categorical([int(l) for l in y_test])
 
 results = {}
 
@@ -156,7 +156,6 @@ svm_model.fit(X_train_vec, y_train)
 y_pred_svm = svm_model.predict(X_test_vec)
 results['SVM'] = accuracy_score(y_test, y_pred_svm)
 
-# === Neural Network ===
 class PlotMetrics(Callback):
     def __init__(self):
         self.history = {'acc': [], 'loss': []}
@@ -170,6 +169,7 @@ class PlotMetrics(Callback):
 
 plot_callback = PlotMetrics()
 
+# === Neural Network ===
 nn_model = Sequential([
     Dense(512, activation='relu', input_shape=(X_train_vec.shape[1],)),
     BatchNormalization(),
